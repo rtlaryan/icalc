@@ -23,19 +23,20 @@
 ## Usage
 
 ### 1. Run the WebApp
-Start the local HTTP server:
+To run the app manually:
 ```bash
 python3 -m http.server 8000
 ```
 Access the calculator at [http://localhost:8000](http://localhost:8000).
 
-### 2. Run the Bridge (Optional)
-If you are connecting an AI agent:
+### 2. Run the Bridge (With Automatic Web Server)
+The bridge script automatically starts a local web server for you.
 1.  Ensure you have a ChromeDriver installed.
 2.  Run the bridge script:
     ```bash
     python3 icalc_bridge.py
     ```
+    This will serve the webapp on port 8000 and connect the Selenium driver to it.
 3.  The bridge connects to the calculator and forwards state to your Agent Server (default: `http://localhost:9000/step`).
 
 ## Data Protocol

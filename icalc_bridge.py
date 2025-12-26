@@ -1,3 +1,7 @@
+import http.server
+import socketserver
+import threading
+import os
 import time
 import json
 import sys
@@ -34,7 +38,27 @@ def smooth_move(driver, start_x, start_y, end_x, end_y, duration=0.5):
         actions.perform()
         time.sleep(sleep_per_step)
 
+def start_server():
+    port = 8000
+    # Change to directory of this script to serve correct files
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    
+    handler = http.server.SimpleHTTPRequestHandler
+    # Allow address reuse to avoid "Address already in use" errors on quick restarts
+    socketserver.TCPServer.allow_reuse_address = True
+    
+    with socketserver.TCPServer(("", port), handler) as httpd:
+        print(f"Serving at port {port}")
+        httpd.serve_forever()
+
 def icalc_bridge():
+    # Start the server in a background thread
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+    
+    # Give the server a moment to start
+    time.sleep(1)
+
     print(f"Starting icalc Bridge Client...")
     print(f"Target App: {ICALC_URL}")
     print(f"Agent Server: {AGENT_SERVER_URL}")
