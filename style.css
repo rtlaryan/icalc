@@ -1,0 +1,180 @@
+:root {
+    --bg-color: #121212;
+    --calc-bg: rgba(255, 255, 255, 0.05);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --btn-bg: rgba(255, 255, 255, 0.1);
+    --btn-hover: rgba(255, 255, 255, 0.2);
+    --op-btn-bg: #ff9f0a;
+    --op-btn-hover: #ffb23f;
+    --fn-btn-bg: #5a5a5a;
+    --fn-btn-hover: #707070;
+    --border-radius: 12px;
+    --spacing: 12px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--bg-color);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    overflow: hidden;
+    /* Prevent scroll */
+}
+
+.calculator-container {
+    background: var(--calc-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    width: 350px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* Scientific mode expansion */
+.calculator-container.scientific {
+    width: 600px;
+}
+
+.calculator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logo {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    opacity: 0.7;
+}
+
+.mode-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.mode-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.calculator-display {
+    text-align: right;
+    margin-bottom: 20px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.history {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    min-height: 1.2em;
+    margin-bottom: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.current-value {
+    font-size: 3rem;
+    font-weight: 300;
+    word-wrap: break-word;
+    line-height: 1.1;
+}
+
+.keys-container {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing);
+    transition: all 0.3s ease;
+}
+
+.basic-pad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing);
+    flex: 1;
+}
+
+.scientific-pad {
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing);
+    width: 260px;
+    /* Adjust as needed */
+}
+
+.calculator-container.scientific {
+    width: 650px;
+}
+
+.calculator-container.scientific .scientific-pad {
+    display: grid;
+}
+
+.btn {
+    background: var(--btn-bg);
+    border: none;
+    border-radius: var(--border-radius);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    height: 60px;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.scientific-key {
+    font-size: 1.1rem;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn:hover {
+    background: var(--btn-hover);
+}
+
+.op-btn {
+    background: var(--op-btn-bg);
+    font-weight: 500;
+}
+
+.op-btn:hover {
+    background: var(--op-btn-hover);
+}
+
+.fn-btn {
+    background: var(--fn-btn-bg);
+}
+
+.fn-btn:hover {
+    background: var(--fn-btn-hover);
+}
+
+.zero-btn {
+    grid-column: span 2;
+}
