@@ -1,4 +1,5 @@
 import http.server
+import argparse
 import socketserver
 import threading
 import os
@@ -51,7 +52,7 @@ def start_server():
         print(f"Serving at port {port}")
         httpd.serve_forever()
 
-def icalc_bridge():
+def icalc_bridge(vision=False, rate=10.0):
     # Start the server in a background thread
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
@@ -81,6 +82,9 @@ def icalc_bridge():
 
         while True:
             state = driver.execute_script("return window.icalcState")
+
+            if vision and state:
+                state['screenshot'] = driver.get_screenshot_as_base64()
             
             try:
                 response = requests.post(AGENT_SERVER_URL, json=state)
@@ -116,7 +120,7 @@ def icalc_bridge():
                 elif action['type'] == 'terminate':
                     break
 
-            time.sleep(0.1)
+            time.sleep(1.0 / rate)
 
     except KeyboardInterrupt:
         print("\n[Bridge] Stopping...")
@@ -126,4 +130,9 @@ def icalc_bridge():
         driver.quit()
 
 if __name__ == "__main__":
-    icalc_bridge()
+    parser = argparse.ArgumentParser(description='Bridge for icalc')
+    parser.add_argument('--vision', action='store_true', help='Enable sending screenshots')
+    parser.add_argument('--rate', type=float, default=10.0, help='Transfer rate in Hz')
+    args = parser.parse_args()
+
+    icalc_bridge(vision=args.vision, rate=args.rate)

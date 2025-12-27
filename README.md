@@ -38,6 +38,15 @@ The bridge script automatically starts a local web server for you.
     ```
     This will serve the webapp on port 8000 and connect the Selenium driver to it.
 3.  The bridge connects to the calculator and forwards state to your Agent Server (default: `http://localhost:9000/step`).
+    
+    **Options:**
+    - `--vision`: Enable sending screenshots (base64 encoded) in the state.
+    - `--rate N`: Set the state update rate to N Hz (default: 10.0).
+
+    Example:
+    ```bash
+    python3 icalc_bridge.py --vision --rate 5
+    ```
 
 ## Data Protocol
 The app exposes state in the following JSON format:
