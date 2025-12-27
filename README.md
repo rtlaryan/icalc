@@ -40,7 +40,7 @@ The bridge script automatically starts a local web server for you.
 3.  The bridge connects to the calculator and forwards state to your Agent Server (default: `http://localhost:9000/step`).
     
     **Options:**
-    - `--vision`: Enable sending screenshots (base64 encoded) in the state.
+    - `--vision`: Enable sending screenshots (base64 encoded) in the state. Adds a visible red cursor to track agent movement.
     - `--rate N`: Set the state update rate to N Hz (default: 10.0).
 
     Example:
@@ -72,4 +72,4 @@ The Agent Server should reply with one of the following JSON actions:
 
 - **Move Mouse**: `{"type": "move", "x": 100, "y": 200}`
 - **Click**: `{"type": "click"}`
-- **Keypress**: `{"type": "keypress", "key": "Enter"}`
+- **Keypress**: `{"type": "keypress", "key": "Enter"}` (Supported: 0-9, operators, Enter, Backspace, Escape, m (toggle mode))

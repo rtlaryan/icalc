@@ -88,6 +88,8 @@ class Calculator {
             this.handleNumber('^');
         } else if (key === '!') {
             this.handleNumber('!');
+        } else if (key === 'm' || key === 'M') {
+            this.toggleMode();
         }
 
         this.updateDisplay();
