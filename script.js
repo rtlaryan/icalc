@@ -148,6 +148,10 @@ class Calculator {
                 this.history = [];
                 this.newNumber = true;
                 this.error = null;
+                // Reset mode to basic for deterministic agent planning
+                if (this.mode === 'scientific') {
+                    this.toggleMode();
+                }
                 break;
             case 'delete':
                 if (this.currentValue.length > 1) {

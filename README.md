@@ -40,12 +40,15 @@ The bridge script automatically starts a local web server for you.
 3.  The bridge connects to the calculator and forwards state to your Agent Server (default: `http://localhost:9000/step`).
     
     **Options:**
-    - `--vision`: Enable sending screenshots (base64 encoded) in the state. Adds a visible red cursor to track agent movement.
-    - `--rate N`: Set the state update rate to N Hz (default: 10.0).
+    - `--vision`: Enable sending screenshots (base64 encoded) in the state.
+    - `--rate N`: Set the state update rate to N Hz (default: 60.0).
+    - `--port P`: Port to serve the webapp on (default: 8000).
+    - `--headless`: Run Chrome in headless mode (recommended for bulk generation).
+    - `--agent-url URL`: Full URL of the agent server.
 
     Example:
     ```bash
-    python3 icalc_bridge.py --vision --rate 5
+    python3 icalc_bridge.py --headless --rate 60 --port 8001 --agent-url http://localhost:9001/step
     ```
 
 ## Data Protocol
@@ -72,4 +75,6 @@ The Agent Server should reply with one of the following JSON actions:
 
 - **Move Mouse**: `{"type": "move", "x": 100, "y": 200}`
 - **Click**: `{"type": "click"}`
-- **Keypress**: `{"type": "keypress", "key": "Enter"}` (Supported: 0-9, operators, Enter, Backspace, Escape, m (toggle mode))
+- **Keypress**: `{"type": "keypress", "key": "Enter"}` 
+  - Supports standard keys: 0-9, +, -, *, /, Enter, Backspace, Escape, m.
+  - Supports semantic function keys: "sin", "cos", "tan", "log", "ln", "sqrt", "pi", "e". The bridge will automatically find and click the corresponding buttons.

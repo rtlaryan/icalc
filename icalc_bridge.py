@@ -141,8 +141,25 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                         "Backspace": Keys.BACK_SPACE,
                         "Escape": Keys.ESCAPE
                     }
-                    key = key_map.get(action['key'], action['key'])
-                    ActionChains(driver).send_keys(key).perform()
+                    
+                    key = action['key']
+                    if key in key_map or len(key) == 1:
+                        # Standard key or mapped special key
+                        mapped_key = key_map.get(key, key)
+                        ActionChains(driver).send_keys(mapped_key).perform()
+                    else:
+                        # Complex key (e.g., 'sin', 'cos'), locate by data-value or data-action and click
+                        try:
+                            # Try data-value first (numbers, functions)
+                            btn = driver.find_element(By.CSS_SELECTOR, f'.btn[data-value="{key}"]')
+                            btn.click()
+                        except:
+                            # Try data-action (operators, clear)
+                            try:
+                                btn = driver.find_element(By.CSS_SELECTOR, f'.btn[data-action="{key}"]')
+                                btn.click()
+                            except Exception as e:
+                                print(f"[Bridge] Warning: Could not find button for key '{key}': {e}")
                 
                 elif action['type'] == 'terminate':
                     break
