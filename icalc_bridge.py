@@ -84,6 +84,26 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
         driver.get(ICALC_URL)
         time.sleep(1)
 
+        if vision:
+            driver.execute_script("""
+                const cursor = document.createElement('div');
+                cursor.style.position = 'fixed';
+                cursor.style.width = '20px';
+                cursor.style.height = '20px';
+                cursor.style.borderRadius = '50%';
+                cursor.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+                cursor.style.pointerEvents = 'none';
+                cursor.style.zIndex = '9999';
+                cursor.style.transform = 'translate(-50%, -50%)';
+                cursor.id = 'agent-cursor';
+                document.body.appendChild(cursor);
+
+                document.addEventListener('mousemove', (e) => {
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+                });
+            """)
+
         current_mouse_x = 0
         current_mouse_y = 0
 
