@@ -23,7 +23,7 @@ def run_clients(server_ip, workers=1, rate=60.0, headless=False):
             print(f"Starting Bridge Worker {i+1}: App Port {app_port} -> Agent {agent_url}")
             
             # Start ICalc Bridge
-            bridge_cmd = [sys.executable, "icalc/icalc_bridge.py",
+            bridge_cmd = [sys.executable, "icalc_bridge.py",
                           "--agent-url", agent_url,
                           "--port", str(app_port),
                           "--rate", str(rate)]
