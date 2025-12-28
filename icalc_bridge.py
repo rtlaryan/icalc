@@ -15,6 +15,9 @@ try:
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.action_chains import ActionChains
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.common.exceptions import TimeoutException, NoSuchElementException
 except ImportError:
     print("Error: Selenium is required. Please install it with: pip install selenium")
     sys.exit(1)
@@ -149,17 +152,28 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                         ActionChains(driver).send_keys(mapped_key).perform()
                     else:
                         # Complex key (e.g., 'sin', 'cos'), locate by data-value or data-action and click
-                        try:
-                            # Try data-value first (numbers, functions)
-                            btn = driver.find_element(By.CSS_SELECTOR, f'.btn[data-value="{key}"]')
-                            btn.click()
-                        except:
-                            # Try data-action (operators, clear)
+                        found = False
+                        last_error = None
+                        
+                        # Define locators
+                        locators = [
+                            (By.CSS_SELECTOR, f'.btn[data-value="{key} साह"]'), # Typo fix if needed, but original was just {key}
+                            (By.CSS_SELECTOR, f'.btn[data-value="{key}"]'),
+                            (By.CSS_SELECTOR, f'.btn[data-action="{key}"]')
+                        ]
+                        
+                        for by, selector in locators:
                             try:
-                                btn = driver.find_element(By.CSS_SELECTOR, f'.btn[data-action="{key}"]')
+                                # Wait briefly for element to be clickable (handles transition/visibility)
+                                btn = WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((by, selector)))
                                 btn.click()
+                                found = True
+                                break
                             except Exception as e:
-                                print(f"[Bridge] Warning: Could not find button for key '{key}': {e}")
+                                last_error = e
+                        
+                        if not found:
+                             print(f"[Bridge] Warning: Could not find/click button for key '{key}': {last_error}")
                 
                 elif action['type'] == 'terminate':
                     break
