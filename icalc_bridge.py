@@ -39,8 +39,7 @@ def smooth_move(driver, start_x, start_y, end_x, end_y, duration=0.5):
         actions.perform()
         time.sleep(sleep_per_step)
 
-def start_server():
-    port = 8000
+def start_server(port):
     # Change to directory of this script to serve correct files
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
@@ -52,9 +51,15 @@ def start_server():
         print(f"Serving at port {port}")
         httpd.serve_forever()
 
-def icalc_bridge(vision=False, rate=10.0):
+def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headless=False):
+    global AGENT_SERVER_URL, ICALC_URL
+    if agent_url:
+        AGENT_SERVER_URL = agent_url
+    
+    ICALC_URL = f"http://localhost:{app_port}"
+    
     # Start the server in a background thread
-    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread = threading.Thread(target=start_server, args=(app_port,), daemon=True)
     server_thread.start()
     
     # Give the server a moment to start
@@ -65,6 +70,8 @@ def icalc_bridge(vision=False, rate=10.0):
     print(f"Agent Server: {AGENT_SERVER_URL}")
 
     chrome_options = Options()
+    if headless:
+        chrome_options.add_argument("--headless=new")
     
     try:
         driver = webdriver.Chrome(options=chrome_options)
@@ -132,7 +139,10 @@ def icalc_bridge(vision=False, rate=10.0):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Bridge for icalc')
     parser.add_argument('--vision', action='store_true', help='Enable sending screenshots')
-    parser.add_argument('--rate', type=float, default=10.0, help='Transfer rate in Hz')
+    parser.add_argument('--rate', type=float, default=60.0, help='Transfer rate in Hz')
+    parser.add_argument('--agent-url', type=str, help='Full URL of the agent step endpoint')
+    parser.add_argument('--port', type=int, default=8000, help='Port to serve the app on')
+    parser.add_argument('--headless', action='store_true', help='Run browser in headless mode')
     args = parser.parse_args()
 
-    icalc_bridge(vision=args.vision, rate=args.rate)
+    icalc_bridge(vision=args.vision, rate=args.rate, agent_url=args.agent_url, app_port=args.port, headless=args.headless)
