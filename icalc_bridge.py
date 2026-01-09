@@ -164,8 +164,7 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                         for by, selector in locators:
                             try:
                                 # Wait for element to be clickable (handles transition/visibility)
-                                # 2.0s timeout to allow for CSS transitions (0.3s) + system load
-                                btn = WebDriverWait(driver, 1.0).until(EC.element_to_be_clickable((by, selector)))
+                                btn = WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((by, selector)))
                                 btn.click()
                                 found = True
                                 break

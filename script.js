@@ -46,7 +46,6 @@ class Calculator {
                 this.handleOperator(value);
             } else if (target.classList.contains('scientific-key') && ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt'].includes(value)) {
                 this.handleFunction(value);
-                return;
             } else if (['pi', 'e'].includes(value)) {
                 this.handleConstant(value);
             } else if (value === 'deg') {

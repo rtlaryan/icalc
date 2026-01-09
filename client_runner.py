@@ -5,8 +5,8 @@ import sys
 import os
 import signal
 
-def run_clients(server_ip, workers=1, rate=60.0, headless=False):
-    print(f"Starting Client Bridges: Server={server_ip}, Workers={workers}, Rate={rate}, Headless={headless}")
+def run_clients(server_ip, workers=1, rate=60.0, headless=False, vision=False):
+    print(f"Starting Client Bridges: Server={server_ip}, Workers={workers}, Rate={rate}, Headless={headless}, Vision={vision}")
     
     processes = []
     
@@ -30,6 +30,9 @@ def run_clients(server_ip, workers=1, rate=60.0, headless=False):
             
             if headless:
                 bridge_cmd.append("--headless")
+
+            if vision:
+                bridge_cmd.append("--vision")
                 
             bridge_proc = subprocess.Popen(bridge_cmd, stdout=sys.stdout, stderr=sys.stderr)
             processes.append(bridge_proc)
@@ -60,6 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--workers', type=int, default=1, help='Number of parallel workers')
     parser.add_argument('--rate', type=float, default=60.0, help='Transfer rate in Hz')
     parser.add_argument('--headless', action='store_true', help='Run browser in headless mode')
+    parser.add_argument('--vision', action='store_true', help='Enable sending screenshots')
     args = parser.parse_args()
     
-    run_clients(args.server_ip, args.workers, args.rate, args.headless)
+    run_clients(args.server_ip, args.workers, args.rate, args.headless, args.vision)
