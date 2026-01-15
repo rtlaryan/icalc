@@ -44,15 +44,13 @@ class Calculator {
         if (value) {
             if (target.classList.contains('op-btn')) {
                 this.handleOperator(value);
-            } else if (target.classList.contains('scientific-key') && ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt'].includes(value)) {
+            } else if (target.classList.contains('scientific-key') && ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'inv'].includes(value)) {
                 this.handleFunction(value);
             } else if (['pi', 'e'].includes(value)) {
                 this.handleConstant(value);
             } else if (value === 'deg') {
                 this.isDegree = !this.isDegree;
                 target.textContent = this.isDegree ? 'deg' : 'rad';
-            } else if (value === 'inv') {
-                // Feature not implemented
             } else {
                 this.handleNumber(value);
             }
@@ -153,9 +151,25 @@ class Calculator {
                 }
                 break;
             case 'delete':
-                if (this.currentValue.length > 1) {
-                    this.currentValue = this.currentValue.slice(0, -1);
-                } else {
+                const funcs = ['sin(', 'cos(', 'tan(', 'log(', 'ln(', 'sqrt(', 'inv('];
+                let deleted = false;
+                for (const func of funcs) {
+                    if (this.currentValue.endsWith(func)) {
+                        this.currentValue = this.currentValue.slice(0, -func.length);
+                        deleted = true;
+                        break;
+                    }
+                }
+
+                if (!deleted) {
+                    if (this.currentValue.length > 1) {
+                        this.currentValue = this.currentValue.slice(0, -1);
+                    } else {
+                        this.currentValue = '0';
+                    }
+                }
+
+                if (this.currentValue === '') {
                     this.currentValue = '0';
                     this.newNumber = true;
                 }
@@ -227,7 +241,8 @@ class Calculator {
                 .replace(/tan\(/g, this.isDegree ? 'degTan(' : 'Math.tan(')
                 .replace(/log\(/g, 'Math.log10(')
                 .replace(/ln\(/g, 'Math.log(')
-                .replace(/sqrt\(/g, 'Math.sqrt(');
+                .replace(/sqrt\(/g, 'Math.sqrt(')
+                .replace(/inv\(/g, '1/(');
 
             const degSin = (d) => Math.sin(d * Math.PI / 180);
             const degCos = (d) => Math.cos(d * Math.PI / 180);
