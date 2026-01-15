@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dummy Agent Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Screenshot Panel */
+        #vision-panel {
+            flex: 2;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+        }
+
+        #screenshot-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        #no-signal {
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        /* Data Panel */
+        #data-panel {
+            flex: 1;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: flex 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
+        }
+
+        #data-panel.collapsed {
+            flex: 0;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .panel-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* State List Styles */
+        #state-container {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            background: #f8f9fa;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .state-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        .state-key {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            display: block;
+        }
+
+        .state-value {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #212529;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .state-value.complex {
+            background-color: #f1f3f5;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        /* Settings Modal/Panel */
+        #settings-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+        }
+
+        #settings-overlay.visible {
+            display: flex;
+        }
+
+        .settings-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .setting-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-settings {
+            align-self: flex-end;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+
+        #plot-container {
+            height: 150px;
+            /* Reduced height to give more room to state */
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        button {
+            padding: 6px 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.secondary {
+            background-color: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="main-toggle" style="position:absolute; top: 20px; right: 20px; z-index:100;">Toggle Data Panel</button>
+
+    <div class="header">
+        <h1>Agent Dashboard</h1>
+    </div>
+
+    <div class="container">
+        <!-- Vision Panel -->
+        <div id="vision-panel" class="panel">
+            <span id="no-signal">Waiting for video stream...</span>
+            <img id="screenshot-img" alt="Agent Vision" />
+        </div>
+
+        <!-- Data Panel (State + Plot) -->
+        <div id="data-panel" class="panel">
+
+            <!-- Settings Overlay -->
+            <div id="settings-overlay">
+                <button class="close-settings secondary">Close</button>
+                <h3>Visible Fields</h3>
+                <div class="settings-list" id="settings-list">
+                    <!-- Checkboxes populated here -->
+                </div>
+            </div>
+
+            <div class="panel-header">
+                <span class="panel-title">Agent State</span>
+                <button id="btn-settings" class="secondary">Customize View</button>
+            </div>
+
+            <div id="state-container">
+                <div style="padding:10px; color:#666;">Connecting...</div>
+            </div>
+
+            <div class="panel-header" style="margin-top: 10px;">
+                <span class="panel-title">Cursor Trace (10s)</span>
+            </div>
+            <div id="plot-container">
+                <canvas id="cursor-plot"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imgElement = document.getElementById('screenshot-img');
+        const noSignalMsg = document.getElementById('no-signal');
+        const stateContainer = document.getElementById('state-container');
+        const dataPanel = document.getElementById('data-panel');
+        const mainToggleBtn = document.getElementById('main-toggle');
+        const btnSettings = document.getElementById('btn-settings');
+        const settingsOverlay = document.getElementById('settings-overlay');
+        const settingsList = document.getElementById('settings-list');
+        const closeSettingsBtn = document.querySelector('.close-settings');
+        const canvas = document.getElementById('cursor-plot');
+        const ctx = canvas.getContext('2d');
+
+        // --- State & Config ---
+        let history = [];
+        const HISTORY_DURATION = 10000;
+
+        // Default hidden keys
+        const DEFAULT_HIDDEN = ['availableInteractions', 'interactiveElements'];
+
+        // User preferences: { key: boolean (isVisible) }
+        let visibilityPrefs = {};
+        let allKeys = new Set();
+
+        // --- UI Logic ---
+        let isDataVisible = true;
+        mainToggleBtn.addEventListener('click', () => {
+            isDataVisible = !isDataVisible;
+            if (isDataVisible) {
+                dataPanel.classList.remove('collapsed');
+                mainToggleBtn.textContent = 'Hide Data Panel';
+            } else {
+                dataPanel.classList.add('collapsed');
+                mainToggleBtn.textContent = 'Show Data Panel';
+            }
+            setTimeout(resizeCanvas, 350);
+        });
+
+        btnSettings.addEventListener('click', () => {
+            settingsOverlay.classList.add('visible');
+            renderSettings();
+        });
+
+        closeSettingsBtn.addEventListener('click', () => {
+            settingsOverlay.classList.remove('visible');
+            // Re-render state to reflect changes immediately
+            if (lastState) renderState(lastState);
+        });
+
+        // Handle initial resize
+        function resizeCanvas() {
+            if (canvas.parentElement.clientWidth > 0) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // --- Plotting Logic ---
+        function updatePlot() {
+            if (!isDataVisible) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const now = Date.now();
+            history = history.filter(p => now - p.timestamp < HISTORY_DURATION);
+
+            if (history.length < 2) return;
+
+            const MAX_X = 1024;
+            const MAX_Y = 768;
+
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+
+            history.forEach((p, i) => {
+                const x = (p.x / MAX_X) * canvas.width;
+                const y = (p.y / MAX_Y) * canvas.height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            ctx.stroke();
+
+            const last = history[history.length - 1];
+            const lastX = (last.x / MAX_X) * canvas.width;
+            const lastY = (last.y / MAX_Y) * canvas.height;
+
+            ctx.fillStyle = '#c0392b';
+            ctx.beginPath();
+            ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // --- Core Data Logic ---
+        let lastState = null;
+
+        function updateVisibilityPrefs(key) {
+            if (!(key in visibilityPrefs)) {
+                // New key found. Decide default.
+                if (DEFAULT_HIDDEN.includes(key)) {
+                    visibilityPrefs[key] = false;
+                } else {
+                    visibilityPrefs[key] = true;
+                }
+            }
+        }
+
+        function renderSettings() {
+            settingsList.innerHTML = '';
+            const sortedKeys = Array.from(allKeys).sort();
+
+            if (sortedKeys.length === 0) {
+                settingsList.innerHTML = '<div style="padding:10px;">No state data received yet.</div>';
+                return;
+            }
+
+            sortedKeys.forEach(key => {
+                const row = document.createElement('div');
+                row.className = 'setting-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = visibilityPrefs[key];
+                checkbox.id = 'chk-' + key;
+
+                checkbox.addEventListener('change', (e) => {
+                    visibilityPrefs[key] = e.target.checked;
+                });
+
+                const label = document.createElement('label');
+                label.htmlFor = 'chk-' + key;
+                label.textContent = key;
+                label.style.cursor = 'pointer';
+
+                row.appendChild(checkbox);
+                row.appendChild(label);
+                settingsList.appendChild(row);
+            });
+        }
+
+        function renderState(state) {
+            // We rebuild the list to ensure order and freshness. 
+            // For performance with high freq updates, we could diff, but for <10 items it's fine.
+            stateContainer.innerHTML = '';
+
+            const keys = Object.keys(state).sort();
+            let visibleCount = 0;
+
+            keys.forEach(key => {
+                if (key === 'screenshot') return;
+
+                // Track key
+                if (!allKeys.has(key)) {
+                    allKeys.add(key);
+                    updateVisibilityPrefs(key);
+                }
+
+                // Check visibility
+                if (!visibilityPrefs[key]) return;
+
+                visibleCount++;
+
+                const item = document.createElement('div');
+                item.className = 'state-item';
+
+                const keyLabel = document.createElement('span');
+                keyLabel.className = 'state-key';
+                keyLabel.textContent = key;
+
+                const valueDiv = document.createElement('pre');
+                valueDiv.className = 'state-value';
+
+                const val = state[key];
+                if (typeof val === 'object' && val !== null) {
+                    valueDiv.classList.add('complex');
+                    valueDiv.textContent = JSON.stringify(val, null, 2);
+                } else {
+                    valueDiv.textContent = String(val);
+                }
+
+                item.appendChild(keyLabel);
+                item.appendChild(valueDiv);
+                stateContainer.appendChild(item);
+            });
+
+            if (visibleCount === 0) {
+                stateContainer.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">All fields hidden. <br><br>Click "Customize View" to select fields.</div>';
+            }
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/state');
+                if (!response.ok) throw new Error("Network response was not ok");
+
+                const state = await response.json();
+                lastState = state;
+
+                // Vision
+                if (state.screenshot) {
+                    imgElement.src = 'data:image/png;base64,' + state.screenshot;
+                    imgElement.style.display = 'block';
+                    noSignalMsg.style.display = 'none';
+                } else {
+                    if (!imgElement.src || imgElement.src === window.location.href) {
+                        imgElement.style.display = 'none';
+                        noSignalMsg.textContent = "No screenshot data";
+                        noSignalMsg.style.display = 'block';
+                    }
+                }
+
+                // Render text state (skipping screenshot)
+                renderState(state);
+
+                // Plot
+                let mx, my;
+                if (state.mousePosition && typeof state.mousePosition.x === 'number') {
+                    mx = state.mousePosition.x;
+                    my = state.mousePosition.y;
+                } else if (state.mouse && typeof state.mouse.x === 'number') {
+                    mx = state.mouse.x;
+                    my = state.mouse.y;
+                } else if (typeof state.mouseX === 'number') {
+                    mx = state.mouseX;
+                    my = state.mouseY;
+                } else if (typeof state.x === 'number') {
+                    mx = state.x;
+                    my = state.y;
+                }
+
+                if (typeof mx === 'number' && typeof my === 'number') {
+                    history.push({
+                        x: mx,
+                        y: my,
+                        timestamp: Date.now()
+                    });
+                    updatePlot();
+                }
+
+            } catch (err) {
+                // console.error("Fetch error:", err);
+            }
+        }
+
+        setInterval(fetchData, 100);
+        resizeCanvas();
+
+    </script>
+</body>
+
+</html>
