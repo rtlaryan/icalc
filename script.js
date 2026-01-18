@@ -122,10 +122,10 @@ class Calculator {
     }
 
     handleOperator(op) {
-        this.history.push(this.currentValue);
-        this.history.push(op);
-        this.currentValue = '';
-        this.newNumber = true;
+        if (this.newNumber) {
+            this.newNumber = false;
+        }
+        this.currentValue += op;
     }
 
     handleFunction(func) {
@@ -196,20 +196,12 @@ class Calculator {
     }
 
     calculate() {
-        if (this.history.length === 0 && this.newNumber) return;
-
-        let expression = '';
-        if (this.history.length > 0) {
-            expression = this.history.join(' ') + ' ' + (this.currentValue || '');
-        } else {
-            expression = this.currentValue;
-        }
-
+        const expression = this.currentValue;
         const result = this.calculateExpression(expression);
 
         if (result !== 'Error') {
+            this.history = [expression];
             this.currentValue = String(result);
-            this.history = [];
             this.newNumber = true;
         } else {
             this.error = 'Calculation Error';
