@@ -76,8 +76,8 @@ The app exposes state in the following JSON format:
 
 ```json
 {
-  "readout": "123.45",
-  "history": ["1", "+", "2"],
+  "readout": "1+2",
+  "history": ["1+2"],
   "mode": "basic",
   "lastAction": "click",
   "error": null,
