@@ -264,6 +264,17 @@ class Calculator {
     }
 
     updateExposedState() {
+        // Map data-action names to canonical key names used by the agent/oracle
+        const actionToKey = {
+            'calculate': 'Enter',
+            'delete': 'Backspace',
+            'all-clear': 'Escape',
+            'memory-add': 'm+',
+            'memory-sub': 'm-',
+            'memory-recall': 'mr',
+            'memory-clear': 'mc',
+        };
+
         const visibleButtons = Array.from(document.querySelectorAll('.btn'))
             .filter(btn => {
                 if (this.mode === 'basic' && btn.closest('.scientific-pad')) return false;
@@ -271,9 +282,13 @@ class Calculator {
             })
             .map(btn => {
                 const rect = btn.getBoundingClientRect();
+                // Use data-value (programmatic) for the canonical key name
+                // Fall back to data-action mapped through actionToKey
+                const rawValue = btn.dataset.value || btn.dataset.action;
+                const canonicalKey = actionToKey[rawValue] || rawValue;
                 return {
                     text: btn.textContent.trim(),
-                    value: btn.dataset.value || btn.dataset.action,
+                    value: canonicalKey,
                     rect: {
                         x: Math.round(rect.x),
                         y: Math.round(rect.y),
@@ -283,13 +298,18 @@ class Calculator {
                 };
             });
 
+        // Build availableInteractions from canonical key names
+        const interactions = visibleButtons.map(b => b.value);
+        // Always include 'm' (mode toggle) — it's a keyboard shortcut with no button
+        interactions.push('m');
+
         const state = {
             readout: this.currentValue,
             history: this.history,
             mode: this.mode,
             lastAction: this.lastAction,
             mousePosition: this.mousePosition,
-            availableInteractions: visibleButtons.map(b => b.text),
+            availableInteractions: interactions,
             interactiveElements: visibleButtons,
             error: this.error,
             memory: this.memory

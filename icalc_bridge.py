@@ -117,7 +117,7 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                 state['screenshot'] = driver.get_screenshot_as_base64()
             
             try:
-                response = requests.post(AGENT_SERVER_URL, json=state)
+                response = requests.post(AGENT_SERVER_URL, json=state, timeout=30)
                 response.raise_for_status()
                 action = response.json()
             except requests.exceptions.RequestException as e:
@@ -142,7 +142,8 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                     key_map = {
                         "Enter": Keys.ENTER,
                         "Backspace": Keys.BACK_SPACE,
-                        "Escape": Keys.ESCAPE
+                        "Escape": Keys.ESCAPE,
+                        "m": "m",  # mode toggle
                     }
                     
                     key = action['key']

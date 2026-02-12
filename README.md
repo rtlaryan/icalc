@@ -72,7 +72,7 @@ python3 client_runner.py --server-ip 127.0.0.1 --workers 2 --rate 30 --headless 
 ```
 
 ## Data Protocol
-The app exposes state in the following JSON format:
+The app exposes state via `window.icalcState` in the following JSON format:
 
 ```json
 {
@@ -83,7 +83,7 @@ The app exposes state in the following JSON format:
   "error": null,
   "memory": 0,
   "mousePosition": { "x": 100, "y": 200 },
-  "availableInteractions": ["7", "8", "9", "/", "C"],
+  "availableInteractions": ["7", "8", "9", "/", "*", "-", "+", "Enter", "Backspace", "Escape", "m"],
   "interactiveElements": [
     {
       "text": "7",
@@ -95,11 +95,16 @@ The app exposes state in the following JSON format:
 }
 ```
 
+> **Note:** `availableInteractions` uses **canonical key names** (e.g., `/`, `*`, `Enter`, `Backspace`, `Escape`) rather than display symbols (e.g., `÷`, `×`, `⌫`, `AC`). The `m` key (mode toggle) is always included. In scientific mode, function keys like `sin`, `cos`, `tan`, etc. are also listed.
+
 ## Agent Protocol
 The Agent Server should reply with one of the following JSON actions:
 
 - **Move Mouse**: `{"type": "move", "x": 100, "y": 200}`
 - **Click**: `{"type": "click"}`
 - **Keypress**: `{"type": "keypress", "key": "Enter"}` 
-  - Supports standard keys: 0-9, +, -, *, /, Enter, Backspace, Escape, m.
-  - Supports semantic function keys: "sin", "cos", "tan", "log", "ln", "sqrt", "pi", "e". The bridge will automatically find and click the corresponding buttons.
+  - Standard keys: `0`-`9`, `+`, `-`, `*`, `/`, `.`, `(`, `)`, `%`, `Enter`, `Backspace`, `Escape`
+  - Mode toggle: `m` (switches between basic and scientific mode)
+  - Scientific function keys: `sin`, `cos`, `tan`, `log`, `ln`, `sqrt`, `pi`, `e`, `^`, `!`, `deg`, `inv`
+  - Memory keys: `mc`, `m+`, `m-`, `mr`
+  - The bridge maps `Enter`→Selenium ENTER, `Backspace`→BACK_SPACE, `Escape`→ESCAPE, `m`→keyboard `m`. Multi-char keys (e.g., `sin`) are handled by clicking the corresponding button.
