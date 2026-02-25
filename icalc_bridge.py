@@ -25,22 +25,6 @@ except ImportError:
 AGENT_SERVER_URL = "http://localhost:9000/step"
 ICALC_URL = "http://localhost:8000"
 
-def smooth_move(driver, start_x, start_y, end_x, end_y, duration=0.5):
-    steps = 10
-    sleep_per_step = duration / steps
-    
-    actions = ActionChains(driver)
-    body = driver.find_element(By.TAG_NAME, "body")
-    
-    for i in range(1, steps + 1):
-        t = i / steps
-        current_x = start_x + (end_x - start_x) * t
-        current_y = start_y + (end_y - start_y) * t
-        
-        actions.move_to_element_with_offset(body, 0, 0)
-        actions.move_by_offset(int(current_x), int(current_y))
-        actions.perform()
-        time.sleep(sleep_per_step)
 
 def start_server(port):
     # Change to directory of this script to serve correct files
@@ -87,28 +71,6 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
         driver.get(ICALC_URL)
         time.sleep(1)
 
-        if vision:
-            driver.execute_script("""
-                const cursor = document.createElement('div');
-                cursor.style.position = 'fixed';
-                cursor.style.width = '20px';
-                cursor.style.height = '20px';
-                cursor.style.borderRadius = '50%';
-                cursor.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
-                cursor.style.pointerEvents = 'none';
-                cursor.style.zIndex = '9999';
-                cursor.style.transform = 'translate(-50%, -50%)';
-                cursor.id = 'agent-cursor';
-                document.body.appendChild(cursor);
-
-                document.addEventListener('mousemove', (e) => {
-                    cursor.style.left = e.clientX + 'px';
-                    cursor.style.top = e.clientY + 'px';
-                });
-            """)
-
-        current_mouse_x = 0
-        current_mouse_y = 0
 
         while True:
             state = driver.execute_script("return window.icalcState")
@@ -128,14 +90,7 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
             if action:
                 print(f"[Bridge] Executing Action: {action['type']}")
                 
-                if action['type'] == 'move':
-                    target_x = action['x']
-                    target_y = action['y']
-                    smooth_move(driver, current_mouse_x, current_mouse_y, target_x, target_y)
-                    current_mouse_x = target_x
-                    current_mouse_y = target_y
-                    
-                elif action['type'] == 'click':
+                if action['type'] == 'click':
                     ActionChains(driver).click().perform()
                     
                 elif action['type'] == 'keypress':

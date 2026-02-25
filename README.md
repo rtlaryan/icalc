@@ -8,8 +8,6 @@
 - **Premium UI**: Dark mode with Glassmorphism aesthetics.
 - **AI Integration**:
   - Exposes internal state via `window.icalcState`.
-  - Provides bounding box data for all interactive elements for spatial awareness.
-  - Tracks mouse position and history.
 - **Remote Bridge**: Includes a Python client (`icalc_bridge.py`) to connect the local app to a remote AI agent server.
 - **Smart Backspace**: Context-aware backspace that deletes entire functions (e.g., `sin(`, `sqrt(`) with a single press.
 
@@ -82,15 +80,7 @@ The app exposes state via `window.icalcState` in the following JSON format:
   "lastAction": "click",
   "error": null,
   "memory": 0,
-  "mousePosition": { "x": 100, "y": 200 },
   "availableInteractions": ["7", "8", "9", "/", "*", "-", "+", "Enter", "Backspace", "Escape", "m"],
-  "interactiveElements": [
-    {
-      "text": "7",
-      "value": "7",
-      "rect": { "x": 10, "y": 50, "width": 60, "height": 60 }
-    }
-  ],
   "screenshot": "base64_string..." // Only if --vision is enabled
 }
 ```
@@ -99,8 +89,6 @@ The app exposes state via `window.icalcState` in the following JSON format:
 
 ## Agent Protocol
 The Agent Server should reply with one of the following JSON actions:
-
-- **Move Mouse**: `{"type": "move", "x": 100, "y": 200}`
 - **Click**: `{"type": "click"}`
 - **Keypress**: `{"type": "keypress", "key": "Enter"}` 
   - Standard keys: `0`-`9`, `+`, `-`, `*`, `/`, `.`, `(`, `)`, `%`, `Enter`, `Backspace`, `Escape`

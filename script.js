@@ -15,7 +15,6 @@ class Calculator {
 
         this.lastAction = null;
         this.error = null;
-        this.mousePosition = { x: 0, y: 0 };
 
         this.init();
     }
@@ -24,7 +23,6 @@ class Calculator {
         if (this.keysContainer) {
             this.keysContainer.addEventListener('click', (e) => this.handleMouseClick(e));
         }
-        document.addEventListener('mousemove', (e) => this.trackMousePosition(e));
         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
 
         this.modeToggleBtn.addEventListener('click', () => this.toggleMode());
@@ -93,12 +91,6 @@ class Calculator {
         this.updateExposedState();
     }
 
-    trackMousePosition(e) {
-        this.mousePosition = { x: e.clientX, y: e.clientY };
-        if (window.icalcState) {
-            window.icalcState.mousePosition = this.mousePosition;
-        }
-    }
 
     handleNumber(num) {
         if (this.newNumber) {
@@ -281,25 +273,14 @@ class Calculator {
                 return btn.offsetParent !== null;
             })
             .map(btn => {
-                const rect = btn.getBoundingClientRect();
                 // Use data-value (programmatic) for the canonical key name
                 // Fall back to data-action mapped through actionToKey
                 const rawValue = btn.dataset.value || btn.dataset.action;
-                const canonicalKey = actionToKey[rawValue] || rawValue;
-                return {
-                    text: btn.textContent.trim(),
-                    value: canonicalKey,
-                    rect: {
-                        x: Math.round(rect.x),
-                        y: Math.round(rect.y),
-                        width: Math.round(rect.width),
-                        height: Math.round(rect.height)
-                    }
-                };
+                return actionToKey[rawValue] || rawValue;
             });
 
         // Build availableInteractions from canonical key names
-        const interactions = visibleButtons.map(b => b.value);
+        const interactions = visibleButtons;
         // Always include 'm' (mode toggle) — it's a keyboard shortcut with no button
         interactions.push('m');
 
@@ -308,9 +289,7 @@ class Calculator {
             history: this.history,
             mode: this.mode,
             lastAction: this.lastAction,
-            mousePosition: this.mousePosition,
             availableInteractions: interactions,
-            interactiveElements: visibleButtons,
             error: this.error,
             memory: this.memory
         };
