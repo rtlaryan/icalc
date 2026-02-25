@@ -102,19 +102,38 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                     }
                     
                     key = action['key']
-                    if key in key_map or len(key) == 1:
-                        # Standard key or mapped special key
-                        mapped_key = key_map.get(key, key)
+                    # We map canonical keys (e.g. 'Enter') directly to Selenium Keys.
+                    mapped_key = key_map.get(key)
+                    if mapped_key:
                         ActionChains(driver).send_keys(mapped_key).perform()
+                    elif len(key) == 1 and key not in ['^', '!']:
+                        # Standard single char (e.g. '7', '+')
+                        ActionChains(driver).send_keys(key).perform()
                     else:
-                        # Complex key (e.g., 'sin', 'cos'), locate by data-value or data-action and click
+                        # The canonical keys (Escape, Backspace, Enter, m) and single chars 
+                        # are handled above.
+                        # Complex keys (e.g., 'sin', 'cos'), locate by data-value or data-action and click
                         found = False
                         last_error = None
+                        
+                        # Reverse map canonical actions for locator fallback (if needed)
+                        # The UI uses data-action='all-clear', 'delete', 'calculate'
+                        reverse_action_map = {
+                            "Escape": "all-clear",
+                            "Backspace": "delete",
+                            "Enter": "calculate",
+                            "m+": "memory-add",
+                            "m-": "memory-sub",
+                            "mr": "memory-recall",
+                            "mc": "memory-clear"
+                        }
+                        
+                        action_name = reverse_action_map.get(key, key)
                         
                         # Define locators
                         locators = [
                             (By.CSS_SELECTOR, f'.btn[data-value="{key}"]'),
-                            (By.CSS_SELECTOR, f'.btn[data-action="{key}"]')
+                            (By.CSS_SELECTOR, f'.btn[data-action="{action_name}"]')
                         ]
                         
                         for by, selector in locators:
