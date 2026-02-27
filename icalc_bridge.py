@@ -59,6 +59,9 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
     chrome_options = Options()
     if headless:
         chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
     
     try:
         driver = webdriver.Chrome(options=chrome_options)
