@@ -130,21 +130,16 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                         
                         action_name = reverse_action_map.get(key, key)
                         
-                        # Define locators
-                        locators = [
-                            (By.CSS_SELECTOR, f'.btn[data-value="{key}"]'),
-                            (By.CSS_SELECTOR, f'.btn[data-action="{action_name}"]')
-                        ]
+                        # Combine locators to prevent sequential TimeoutException penalties
+                        selector = f'.btn[data-value="{key}"], .btn[data-action="{action_name}"]'
                         
-                        for by, selector in locators:
-                            try:
-                                # Wait for element to be clickable (handles transition/visibility)
-                                btn = WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((by, selector)))
-                                btn.click()
-                                found = True
-                                break
-                            except Exception as e:
-                                last_error = e
+                        try:
+                            # Wait for element to be clickable (handles transition/visibility)
+                            btn = WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
+                            btn.click()
+                            found = True
+                        except Exception as e:
+                            last_error = e
                         
                         if not found:
                              print(f"[Bridge] Warning: Could not find/click button for key '{key}': {last_error}")
