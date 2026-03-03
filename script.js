@@ -273,10 +273,9 @@ class Calculator {
                 return btn.offsetParent !== null;
             })
             .map(btn => {
-                // Use data-value (programmatic) for the canonical key name
-                // Fall back to data-action mapped through actionToKey
-                const rawValue = btn.dataset.value || btn.dataset.action;
-                return actionToKey[rawValue] || rawValue;
+                // Crawler data uses the literally displayed text of the button
+                // for the available actions list. We MUST match it for tokenizing.
+                return btn.textContent.trim();
             });
 
         // Build availableInteractions from canonical key names
