@@ -44,6 +44,7 @@ The bridge script automatically starts a local web server for you.
     - `--port P`: Port to serve the webapp on (default: 8000).
     - `--headless`: Run Chrome in headless mode (recommended for bulk generation).
     - `--agent-url URL`: Full URL of the agent server.
+    - `--request-timeout N`: Agent server request timeout in seconds (default: 120).
 
     Example:
     ```bash

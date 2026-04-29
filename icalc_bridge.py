@@ -88,7 +88,7 @@ def start_server(port):
         print(f"Serving at port {port}")
         httpd.serve_forever()
 
-def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headless=False):
+def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headless=False, request_timeout=120.0):
     global AGENT_SERVER_URL, ICALC_URL
     if agent_url:
         AGENT_SERVER_URL = agent_url
@@ -136,7 +136,7 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                 state['screenshot'] = driver.get_screenshot_as_base64()
             
             try:
-                response = requests.post(AGENT_SERVER_URL, json=state, timeout=30)
+                response = requests.post(AGENT_SERVER_URL, json=state, timeout=request_timeout)
                 response.raise_for_status()
                 action = response.json()
             except requests.exceptions.RequestException as e:
@@ -223,6 +223,14 @@ if __name__ == "__main__":
     parser.add_argument('--agent-url', type=str, help='Full URL of the agent step endpoint')
     parser.add_argument('--port', type=int, default=8000, help='Port to serve the app on')
     parser.add_argument('--headless', action='store_true', help='Run browser in headless mode')
+    parser.add_argument('--request-timeout', type=float, default=120.0, help='Agent server request timeout in seconds')
     args = parser.parse_args()
 
-    icalc_bridge(vision=args.vision, rate=args.rate, agent_url=args.agent_url, app_port=args.port, headless=args.headless)
+    icalc_bridge(
+        vision=args.vision,
+        rate=args.rate,
+        agent_url=args.agent_url,
+        app_port=args.port,
+        headless=args.headless,
+        request_timeout=args.request_timeout,
+    )

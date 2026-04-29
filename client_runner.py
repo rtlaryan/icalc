@@ -5,10 +5,21 @@ import sys
 import os
 import signal
 
-def run_clients(server_ip, workers=1, worker_offset=0, rate=60.0, headless=False, vision=False):
-    print(f"Starting Client Bridges: Server={server_ip}, Workers={workers}, Offset={worker_offset}, Rate={rate}, Headless={headless}, Vision={vision}")
+def run_clients(
+    server_ip,
+    workers=1,
+    worker_offset=0,
+    rate=60.0,
+    headless=False,
+    vision=False,
+    quiet=False,
+    request_timeout=120.0,
+):
+    if not quiet:
+        print(f"Starting Client Bridges: Server={server_ip}, Workers={workers}, Offset={worker_offset}, Rate={rate}, Headless={headless}, Vision={vision}")
     
     processes = []
+    sink = subprocess.DEVNULL if quiet else None
     
     # Base ports
     base_agent_port = 9000
@@ -20,13 +31,15 @@ def run_clients(server_ip, workers=1, worker_offset=0, rate=60.0, headless=False
             app_port = base_app_port + worker_offset + i
             agent_url = f"http://{server_ip}:{agent_port}/step"
             
-            print(f"Starting Bridge Worker {i+1} (Offset {worker_offset + i}): App Port {app_port} -> Agent {agent_url}")
+            if not quiet:
+                print(f"Starting Bridge Worker {i+1} (Offset {worker_offset + i}): App Port {app_port} -> Agent {agent_url}")
             
             # Start ICalc Bridge
             bridge_cmd = [sys.executable, "icalc_bridge.py",
                           "--agent-url", agent_url,
                           "--port", str(app_port),
-                          "--rate", str(rate)]
+                          "--rate", str(rate),
+                          "--request-timeout", str(request_timeout)]
             
             if headless:
                 bridge_cmd.append("--headless")
@@ -34,24 +47,28 @@ def run_clients(server_ip, workers=1, worker_offset=0, rate=60.0, headless=False
             if vision:
                 bridge_cmd.append("--vision")
                 
-            bridge_proc = subprocess.Popen(bridge_cmd, stdout=sys.stdout, stderr=sys.stderr)
+            bridge_proc = subprocess.Popen(bridge_cmd, stdout=sink, stderr=sink)
             processes.append(bridge_proc)
             
             time.sleep(1)
 
-        print("Running bridges... Press Ctrl+C to stop.")
+        if not quiet:
+            print("Running bridges... Press Ctrl+C to stop.")
         while True:
             time.sleep(1)
             # Check if any bridge died
             active_bridges = [p for p in processes if p.poll() is None]
             if not active_bridges:
-                print("All bridges stopped.")
+                if not quiet:
+                    print("All bridges stopped.")
                 break
                 
     except KeyboardInterrupt:
-        print("Stopping clients...")
+        if not quiet:
+            print("Stopping clients...")
     finally:
-        print("Terminating all processes...")
+        if not quiet:
+            print("Terminating all processes...")
         for p in processes:
             if p.poll() is None:
                 p.terminate()
@@ -65,6 +82,17 @@ if __name__ == "__main__":
     parser.add_argument('--rate', type=float, default=60.0, help='Transfer rate in Hz')
     parser.add_argument('--headless', action='store_true', help='Run browser in headless mode')
     parser.add_argument('--vision', action='store_true', help='Enable sending screenshots')
+    parser.add_argument('--quiet', action='store_true', help='Suppress bridge output')
+    parser.add_argument('--request-timeout', type=float, default=120.0, help='Agent server request timeout in seconds')
     args = parser.parse_args()
     
-    run_clients(args.server_ip, args.workers, args.worker_offset, args.rate, args.headless, args.vision)
+    run_clients(
+        args.server_ip,
+        args.workers,
+        args.worker_offset,
+        args.rate,
+        args.headless,
+        args.vision,
+        args.quiet,
+        args.request_timeout,
+    )
