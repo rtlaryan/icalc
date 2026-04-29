@@ -77,6 +77,7 @@ The app exposes state via `window.icalcState` in the following JSON format:
   "readout": "1+2",
   "history": ["1+2"],
   "mode": "basic",
+  "angleMode": "deg",
   "lastAction": "click",
   "error": null,
   "memory": 0,
@@ -85,7 +86,7 @@ The app exposes state via `window.icalcState` in the following JSON format:
 }
 ```
 
-> **Note:** `availableInteractions` uses **canonical key names** (e.g., `/`, `*`, `Enter`, `Backspace`, `Escape`) rather than display symbols (e.g., `÷`, `×`, `⌫`, `AC`). The `m` key (mode toggle) is always included. In scientific mode, function keys like `sin`, `cos`, `tan`, etc. are also listed.
+> **Note:** `availableInteractions` uses **canonical key names** (e.g., `/`, `*`, `Enter`, `Backspace`, `Escape`) rather than display symbols (e.g., `÷`, `×`, `⌫`, `AC`). The `m` key (mode toggle) is always included. In scientific mode, function keys like `sin`, `cos`, `tan`, etc. are also listed. `angleMode` is always either `deg` or `rad`; pressing/clicking `deg` toggles it.
 
 ## Agent Protocol
 The Agent Server should reply with one of the following JSON actions:
@@ -94,5 +95,5 @@ The Agent Server should reply with one of the following JSON actions:
   - Standard keys: `0`-`9`, `+`, `-`, `*`, `/`, `.`, `(`, `)`, `%`, `Enter`, `Backspace`, `Escape`
   - Mode toggle: `m` (switches between basic and scientific mode)
   - Scientific function keys: `sin`, `cos`, `tan`, `log`, `ln`, `sqrt`, `pi`, `e`, `^`, `!`, `deg`, `inv`
-  - Memory keys: `mc`, `m+`, `m-`, `mr`
+  - Memory keys are intentionally not part of the Milestone A agent contract.
   - The bridge maps `Enter`→Selenium ENTER, `Backspace`→BACK_SPACE, `Escape`→ESCAPE, `m`→keyboard `m`. Multi-char keys (e.g., `sin`) are handled by clicking the corresponding button.

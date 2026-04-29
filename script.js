@@ -261,25 +261,22 @@ class Calculator {
             'calculate': 'Enter',
             'delete': 'Backspace',
             'all-clear': 'Escape',
-            'memory-add': 'm+',
-            'memory-sub': 'm-',
-            'memory-recall': 'mr',
-            'memory-clear': 'mc',
         };
+        const deferredActions = new Set(['memory-add', 'memory-sub', 'memory-recall', 'memory-clear']);
 
         const visibleButtons = Array.from(document.querySelectorAll('.btn'))
             .filter(btn => {
                 if (this.mode === 'basic' && btn.closest('.scientific-pad')) return false;
+                if (deferredActions.has(btn.dataset.action)) return false;
                 return btn.offsetParent !== null;
             })
             .map(btn => {
-                // Crawler data uses the literally displayed text of the button
-                // for the available actions list. We MUST match it for tokenizing.
+                if (btn.dataset.value) return btn.dataset.value;
+                if (btn.dataset.action && actionToKey[btn.dataset.action]) return actionToKey[btn.dataset.action];
                 return btn.textContent.trim();
             });
 
-        // Build availableInteractions from canonical key names
-        const interactions = visibleButtons;
+        const interactions = Array.from(new Set(visibleButtons));
         // Always include 'm' (mode toggle) — it's a keyboard shortcut with no button
         interactions.push('m');
 
@@ -290,7 +287,8 @@ class Calculator {
             lastAction: this.lastAction,
             availableInteractions: interactions,
             error: this.error,
-            memory: this.memory
+            memory: this.memory,
+            angleMode: this.isDegree ? 'deg' : 'rad'
         };
 
         window.icalcState = state;
