@@ -8,12 +8,14 @@ import json
 import sys
 import requests
 import math
+import shutil
 
 try:
     from selenium import webdriver
     from selenium.webdriver.common.by import By
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
     from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
@@ -24,6 +26,54 @@ except ImportError:
 
 AGENT_SERVER_URL = "http://localhost:9000/step"
 ICALC_URL = "http://localhost:8000"
+
+
+def first_existing_executable(paths):
+    for path in paths:
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    return None
+
+
+def find_first_executable(names):
+    for name in names:
+        path = shutil.which(name)
+        if path:
+            return path
+    return None
+
+
+def build_chrome_driver(chrome_options):
+    snap_chromium_dir = "/snap/chromium/current/usr/lib/chromium-browser"
+    browser_path = (
+        os.environ.get("CHROME_BINARY")
+        or first_existing_executable([
+            os.path.join(snap_chromium_dir, "chrome"),
+        ])
+        or find_first_executable([
+            "google-chrome",
+            "google-chrome-stable",
+            "chromium",
+            "chromium-browser",
+        ])
+    )
+    if browser_path:
+        chrome_options.binary_location = browser_path
+
+    driver_path = (
+        os.environ.get("CHROMEDRIVER")
+        or first_existing_executable([
+            os.path.join(snap_chromium_dir, "chromedriver"),
+        ])
+        or find_first_executable([
+            "chromedriver",
+            "chromium.chromedriver",
+        ])
+    )
+    if driver_path:
+        return webdriver.Chrome(service=Service(driver_path), options=chrome_options)
+
+    return webdriver.Chrome(options=chrome_options)
 
 
 def start_server(port):
@@ -64,7 +114,7 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
         chrome_options.add_argument("--disable-gpu")
     
     try:
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = build_chrome_driver(chrome_options)
         driver.set_window_size(1024, 768)
     except Exception as e:
         print(f"Failed to start Chrome Driver: {e}")
@@ -72,11 +122,15 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
 
     try:
         driver.get(ICALC_URL)
-        time.sleep(1)
-
+        WebDriverWait(driver, 10).until(
+            lambda d: d.execute_script("return typeof window.icalcState !== 'undefined' && window.icalcState !== null")
+        )
 
         while True:
             state = driver.execute_script("return window.icalcState")
+            if not state:
+                time.sleep(1.0 / rate)
+                continue
 
             if vision and state:
                 state['screenshot'] = driver.get_screenshot_as_base64()
@@ -86,12 +140,15 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                 response.raise_for_status()
                 action = response.json()
             except requests.exceptions.RequestException as e:
-                print(f"[Bridge] Connection Error to Agent Server: {e}")
+                details = ""
+                if getattr(e, "response", None) is not None and e.response.text:
+                    details = f" | response: {e.response.text[:500]}"
+                print(f"[Bridge] Connection Error to Agent Server: {e}{details}")
                 time.sleep(2)
                 continue
 
             if action:
-                print(f"[Bridge] Executing Action: {action['type']}")
+                #print(f"[Bridge] Executing Action: {action['type']}")
                 
                 if action['type'] == 'click':
                     ActionChains(driver).click().perform()

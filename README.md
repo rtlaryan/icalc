@@ -30,7 +30,7 @@ Access the calculator at [http://localhost:8000](http://localhost:8000).
 
 ### 2. Run the Bridge (With Automatic Web Server)
 The bridge script automatically starts a local web server for you.
-1.  Ensure you have a ChromeDriver installed.
+1.  Ensure Chrome/Chromium and a matching ChromeDriver are installed. The bridge automatically detects standard `chromedriver` installs and Ubuntu snap Chromium installs.
 2.  Run the bridge script:
     ```bash
     python3 icalc_bridge.py
@@ -48,6 +48,11 @@ The bridge script automatically starts a local web server for you.
     Example:
     ```bash
     python3 icalc_bridge.py --headless --rate 60 --port 8001 --agent-url http://localhost:9001/step
+    ```
+
+    If Chrome or ChromeDriver are installed in a custom location, set:
+    ```bash
+    CHROME_BINARY=/path/to/chrome CHROMEDRIVER=/path/to/chromedriver python3 icalc_bridge.py --headless
     ```
 
 ### 3. Run Multiple Clients (Client Runner)
