@@ -95,7 +95,7 @@ def icalc_bridge(
     app_port=8000,
     headless=False,
     request_timeout=120.0,
-    throttle=True,
+    throttle=False,
 ):
     global AGENT_SERVER_URL, ICALC_URL
     if agent_url:
@@ -234,7 +234,10 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=8000, help='Port to serve the app on')
     parser.add_argument('--headless', action='store_true', help='Run browser in headless mode')
     parser.add_argument('--request-timeout', type=float, default=120.0, help='Agent server request timeout in seconds')
-    parser.add_argument('--no-throttle', action='store_true', help='Do not sleep between bridge steps')
+    throttle_group = parser.add_mutually_exclusive_group()
+    throttle_group.add_argument('--no-throttle', dest='throttle', action='store_false', help='Do not sleep between bridge steps')
+    throttle_group.add_argument('--throttle', dest='throttle', action='store_true', help='Sleep between bridge steps according to --rate')
+    parser.set_defaults(throttle=False)
     args = parser.parse_args()
 
     icalc_bridge(
@@ -244,5 +247,5 @@ if __name__ == "__main__":
         app_port=args.port,
         headless=args.headless,
         request_timeout=args.request_timeout,
-        throttle=not args.no_throttle,
+        throttle=args.throttle,
     )

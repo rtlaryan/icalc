@@ -45,7 +45,8 @@ The bridge script automatically starts a local web server for you.
     - `--headless`: Run Chrome in headless mode (recommended for bulk generation).
     - `--agent-url URL`: Full URL of the agent server.
     - `--request-timeout N`: Agent server request timeout in seconds (default: 120).
-    - `--no-throttle`: Do not sleep between bridge steps.
+    - `--no-throttle`: Do not sleep between bridge steps (default).
+    - `--throttle`: Sleep between bridge steps according to `--rate`.
 
     Example:
     ```bash
@@ -70,6 +71,8 @@ python3 client_runner.py --server-ip localhost --workers 4
 - `--rate`: State update rate in Hz (Default: 60.0).
 - `--headless`: Run browsers in headless mode.
 - `--vision`: Enable screenshot transmission.
+- `--no-throttle`: Do not sleep between bridge steps (default).
+- `--throttle`: Sleep between bridge steps according to `--rate`.
 
 Example with all options:
 ```bash

@@ -14,7 +14,7 @@ def run_clients(
     vision=False,
     quiet=False,
     request_timeout=120.0,
-    no_throttle=False,
+    no_throttle=True,
 ):
     if not quiet:
         print(f"Starting Client Bridges: Server={server_ip}, Workers={workers}, Offset={worker_offset}, Rate={rate}, Headless={headless}, Vision={vision}")
@@ -88,7 +88,10 @@ if __name__ == "__main__":
     parser.add_argument('--vision', action='store_true', help='Enable sending screenshots')
     parser.add_argument('--quiet', action='store_true', help='Suppress bridge output')
     parser.add_argument('--request-timeout', type=float, default=120.0, help='Agent server request timeout in seconds')
-    parser.add_argument('--no-throttle', action='store_true', help='Do not sleep between bridge steps')
+    throttle_group = parser.add_mutually_exclusive_group()
+    throttle_group.add_argument('--no-throttle', dest='no_throttle', action='store_true', help='Do not sleep between bridge steps')
+    throttle_group.add_argument('--throttle', dest='no_throttle', action='store_false', help='Sleep between bridge steps according to --rate')
+    parser.set_defaults(no_throttle=True)
     args = parser.parse_args()
     
     run_clients(
