@@ -14,6 +14,7 @@ def run_clients(
     vision=False,
     quiet=False,
     request_timeout=120.0,
+    no_throttle=False,
 ):
     if not quiet:
         print(f"Starting Client Bridges: Server={server_ip}, Workers={workers}, Offset={worker_offset}, Rate={rate}, Headless={headless}, Vision={vision}")
@@ -46,6 +47,9 @@ def run_clients(
 
             if vision:
                 bridge_cmd.append("--vision")
+
+            if no_throttle:
+                bridge_cmd.append("--no-throttle")
                 
             bridge_proc = subprocess.Popen(bridge_cmd, stdout=sink, stderr=sink)
             processes.append(bridge_proc)
@@ -84,6 +88,7 @@ if __name__ == "__main__":
     parser.add_argument('--vision', action='store_true', help='Enable sending screenshots')
     parser.add_argument('--quiet', action='store_true', help='Suppress bridge output')
     parser.add_argument('--request-timeout', type=float, default=120.0, help='Agent server request timeout in seconds')
+    parser.add_argument('--no-throttle', action='store_true', help='Do not sleep between bridge steps')
     args = parser.parse_args()
     
     run_clients(
@@ -95,4 +100,5 @@ if __name__ == "__main__":
         args.vision,
         args.quiet,
         args.request_timeout,
+        args.no_throttle,
     )

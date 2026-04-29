@@ -88,7 +88,15 @@ def start_server(port):
         print(f"Serving at port {port}")
         httpd.serve_forever()
 
-def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headless=False, request_timeout=120.0):
+def icalc_bridge(
+    vision=False,
+    rate=60.0,
+    agent_url=None,
+    app_port=8000,
+    headless=False,
+    request_timeout=120.0,
+    throttle=True,
+):
     global AGENT_SERVER_URL, ICALC_URL
     if agent_url:
         AGENT_SERVER_URL = agent_url
@@ -129,7 +137,8 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
         while True:
             state = driver.execute_script("return window.icalcState")
             if not state:
-                time.sleep(1.0 / rate)
+                if throttle and rate > 0:
+                    time.sleep(1.0 / rate)
                 continue
 
             if vision and state:
@@ -207,7 +216,8 @@ def icalc_bridge(vision=False, rate=60.0, agent_url=None, app_port=8000, headles
                 elif action['type'] == 'terminate':
                     break
 
-            time.sleep(1.0 / rate)
+            if throttle and rate > 0:
+                time.sleep(1.0 / rate)
 
     except KeyboardInterrupt:
         print("\n[Bridge] Stopping...")
@@ -224,6 +234,7 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=8000, help='Port to serve the app on')
     parser.add_argument('--headless', action='store_true', help='Run browser in headless mode')
     parser.add_argument('--request-timeout', type=float, default=120.0, help='Agent server request timeout in seconds')
+    parser.add_argument('--no-throttle', action='store_true', help='Do not sleep between bridge steps')
     args = parser.parse_args()
 
     icalc_bridge(
@@ -233,4 +244,5 @@ if __name__ == "__main__":
         app_port=args.port,
         headless=args.headless,
         request_timeout=args.request_timeout,
+        throttle=not args.no_throttle,
     )

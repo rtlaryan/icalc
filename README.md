@@ -45,6 +45,7 @@ The bridge script automatically starts a local web server for you.
     - `--headless`: Run Chrome in headless mode (recommended for bulk generation).
     - `--agent-url URL`: Full URL of the agent server.
     - `--request-timeout N`: Agent server request timeout in seconds (default: 120).
+    - `--no-throttle`: Do not sleep between bridge steps.
 
     Example:
     ```bash
